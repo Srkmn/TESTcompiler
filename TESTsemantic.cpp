@@ -9,53 +9,6 @@ static std::vector<SymbolInfo> symbolTable;  // 按声明顺序存储变量信息
 static std::unordered_map<std::string, int> symbolIndex;  // 用于快速查找变量索引  
 static std::vector<std::string> generatedCode;  // 生成的中间代码  
 
-// 初始化语义分析器  
-void initializeSemanticAnalyzer() {
-    symbolTable.clear();
-    generatedCode.clear();
-}
-
-// 获取符号信息  
-SymbolInfo* getSymbolInfo(const std::string& name) {
-    auto it = symbolIndex.find(name);
-    if (it != symbolIndex.end()) {
-        return &symbolTable[it->second];
-    }
-    return nullptr;
-}
-
-// 添加变量到符号表  
-void addVariable(const std::string& name) {
-    // 检查是否已声明  
-    if (symbolIndex.find(name) != symbolIndex.end()) {
-        semanticError("Variable '" + name + "' already declared");
-    }
-
-    // 添加到符号表  
-    SymbolInfo info;
-    info.name = name;
-    info.type = ValueType::UNKNOWN;
-    info.isInitialized = false;
-
-    symbolIndex[name] = symbolTable.size();  // 记录变量在vector中的位置  
-    symbolTable.push_back(info);
-}
-
-// 检查标识符是否已声明  
-bool checkIdentifierDeclared(const std::string& name) {
-    return getSymbolInfo(name) != nullptr;
-}
-
-// 语义错误处理  
-void semanticError(const std::string& message) {
-    throw std::runtime_error("Semantic error: " + message);
-}
-
-// 生成中间代码  
-void generateCode(const std::string& code) {
-    generatedCode.push_back(code);
-}
-
 // 辅助函数：获取类型字符串（用于错误消息）  
 static std::string getTypeString(ValueType type) {
     switch (type) {
@@ -92,18 +45,67 @@ static void checkTypeCompatibility(const std::string& op, ValueType leftType, Va
     }
 }
 
+// 初始化语义分析器  
+void initializeSemanticAnalyzer() {
+    symbolTable.clear();
+    generatedCode.clear();
+}
+
+// 添加变量到符号表  
+void addVariable(const std::string& name) {
+    // 检查是否已声明  
+    if (symbolIndex.find(name) != symbolIndex.end()) {
+        semanticError("Variable '" + name + "' already declared");
+    }
+
+    // 添加到符号表  
+    SymbolInfo info;
+    info.name = name;
+    info.type = ValueType::UNKNOWN;
+    info.isInitialized = false;
+
+    symbolIndex[name] = symbolTable.size();  // 记录变量在vector中的位置  
+    symbolTable.push_back(info);
+}
+
+// 检查标识符是否已声明  
+bool checkIdentifierDeclared(const std::string& name) {
+    return getSymbolInfo(name) != nullptr;
+}
+
 // 变量初始化检查  
-static void checkInitialized(const std::string& name) {
+bool checkInitialized(const std::string& name) {
     SymbolInfo* info = getSymbolInfo(name);
     if (info && !info->isInitialized) {
         std::cout << "Warning: Variable '" << name << "' may be used uninitialized" << std::endl;
+        return false;
     }
+    return true;
 }
 
 // 标记变量已初始化  
-static void markInitialized(const std::string& name) {
+void markInitialized(const std::string& name) {
     SymbolInfo* info = getSymbolInfo(name);
     if (info) {
         info->isInitialized = true;
     }
+}
+
+// 语义错误处理  
+void semanticError(const std::string& message) {
+    throw std::runtime_error("Semantic error: " + message);
+}
+
+// 生成中间代码  
+static void generateCode(const std::string& code) {
+    generatedCode.push_back(code);
+}
+
+// 获取符号信息  
+static SymbolInfo* getSymbolInfo(const std::string& name) {
+    auto it = symbolIndex.find(name);
+    if (it != symbolIndex.end()) {
+        return &symbolTable[it->second];
+    }
+    return nullptr;
 }

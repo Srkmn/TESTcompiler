@@ -354,9 +354,18 @@ static void assignment_expression() {
     arithmetic_expression();
     generatedCode.push_back("STO " + id);
     generatedCode.push_back("POP");
+
+    // 标记变量已初始化  
+    markInitialized(id);
 }
 
-// <bool_expression> → <arithmetic_expression> relop <arithmetic_expression>  
+//<bool_expression>→
+//      <arithmetic_expression> > <arithmetic_expression>
+//    | <arithmetic_expression> < <arithmetic_expression>
+//    | <arithmetic_expression> >= <arithmetic_expression>
+//    | <arithmetic_expression> <= <arithmetic_expression>
+//    | <arithmetic_expression> == <arithmetic_expression>
+//    | <arithmetic_expression> != <arithmetic_expression>
 static void bool_expression() {
     arithmetic_expression();
 
@@ -421,8 +430,13 @@ static void factor() {
         nextToken();
     }
     else if (match("identifier")) {
+        // 检查变量是否定义
         if (!checkIdentifierDeclared(currentToken.value)) {
             semanticError("Undefined variable: " + currentToken.value);
+        }
+        // 检查变量是否初始化  
+        if (!checkInitialized(currentToken.value)) {
+            semanticError("Variable " + currentToken.value + " used before initialization");
         }
         generatedCode.push_back("LOAD " + currentToken.value);
         nextToken();
