@@ -146,7 +146,7 @@ void testScan(ifstream& inputFile, ofstream& outputFile, vector<string>& tokens,
             if (!bIsInvalidIdentifier) {
                 // 校验无符号整数是否合法  
                 if (isValidUnsignedInteger(currentToken)) {
-                    tokens.push_back("int " + currentToken + " " + to_string(line));
+                    tokens.push_back("number " + currentToken + " " + to_string(line));
                 }
                 else {
                     errors.push_back("无效整数（前导0）: \'" + currentToken + "\'" + " 在第 " + to_string(line) + " 行");
